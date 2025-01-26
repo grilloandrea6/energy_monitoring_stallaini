@@ -30,7 +30,7 @@ def receive_data():
                 data = conn.recv(4096)  # ToDo Adjust buffer size
                 data = msgpack.unpackb(data)
                 
-                print(data)  # Replace with actual database insertion logic.
+                # print(data)
                 cursor.execute('''
                 INSERT INTO battery_data (timestamp, charge_voltage, charge_current_limit, discharge_current_limit, temperature, soc, soh, voltage, current)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)

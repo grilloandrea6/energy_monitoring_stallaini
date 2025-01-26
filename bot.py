@@ -47,7 +47,7 @@ def get_data(period: timedelta):
 
     end_time = datetime.now()
     start_time = end_time - period
-    query = ("SELECT timestamp, voltage, current, soc FROM battery_data "
+    query = ("SELECT timestamp, soc, current, temperature FROM battery_data "
              "WHERE timestamp BETWEEN ? AND ?")
     cursor.execute(query, (start_time, end_time))
     data = cursor.fetchall()
@@ -60,19 +60,43 @@ def generate_plot(data, title):
     if not data:
         return None
 
-    timestamps, voltages, currents, socs = zip(*data)
-    plt.figure(figsize=(12, 8))
-    plt.plot(timestamps, voltages, label='Voltage (V)', color='blue')
-    plt.plot(timestamps, currents, label='Current (A)', color='green')
-    plt.plot(timestamps, socs, label='State of Charge (%)', color='orange')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Values')
-    plt.title(title)
-    plt.legend()
-    plt.grid()
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
+    timestamps, socs, currents, temperatures = zip(*data)
+    
+    # Define a figure with 3 subplots
+    fig, axes = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
 
+    # Plot Temperature
+    axes[0].plot(timestamps, temperatures, label='Temperature (C°)', color='blue')
+    axes[0].set_ylabel('Temperature (C°)')
+    axes[0].legend()
+    axes[0].grid()
+
+    # Plot Current
+    axes[1].plot(timestamps, currents, label='Current (A)', color='green')
+    axes[1].set_ylabel('Current (A)')
+    axes[1].legend()
+    axes[1].grid()
+
+    # Plot State of Charge
+    axes[2].plot(timestamps, socs, label='State of Charge (%)', color='orange')
+    axes[2].set_ylabel('State of Charge (%)')
+    axes[2].legend()
+    axes[2].grid()
+
+    # Convert string timestamps to formatted strings
+    timestamps_formatted = [ts[:16] for ts in timestamps]
+
+    # Format the x-axis to show fewer timestamps
+    x_ticks = range(0, len(timestamps_formatted), max(1, len(timestamps_formatted) // 10))  # Display every 1/10th of the points
+    axes[2].set_xticks(x_ticks)
+    axes[2].set_xticklabels([timestamps_formatted[i] for i in x_ticks], rotation=45, ha='right')
+
+    # Add a common title and adjust layout
+    fig.suptitle(title)
+    plt.xlabel("Timestamp")
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Leave space for the suptitle
+
+    # Save the figure
     filename = 'battery_plot.png'
     plt.savefig(filename)
     plt.close()
@@ -84,12 +108,12 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     """Fetch and display the current battery status."""
     data = get_data(timedelta(minutes=1))  # Last 1 minute for the latest status
     if data:
-        timestamp, voltage, current, soc = data[-1]
+        timestamp, soc, current, temperature = data[-1]
         await update.message.reply_text(f"Current Status:\n"
                                         f"Timestamp: {timestamp}\n"
-                                        f"Voltage: {voltage} V\n"
+                                        f"State of Charge: {soc}%\n"
                                         f"Current: {current} A\n"
-                                        f"State of Charge: {soc}%")
+                                        f"Temperature: {temperature} C°")
     else:
         await update.message.reply_text("No data available.")
     await show_commands(update, context)
