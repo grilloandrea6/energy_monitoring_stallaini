@@ -115,7 +115,23 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                                         f"Current: {current} A\n"
                                         f"Temperature: {temperature} C°")
     else:
-        await update.message.reply_text("No data available.")
+        # If no data for the last minute, fetch the most recent data
+        conn = sqlite3.connect('battery_data.db')
+        cursor = conn.cursor()
+        query = "SELECT timestamp, soc, current, temperature FROM battery_data ORDER BY timestamp DESC LIMIT 1"
+        cursor.execute(query)
+        last_data = cursor.fetchone()
+        conn.close()
+        
+        if last_data:
+            timestamp, soc, current, temperature = last_data
+            await update.message.reply_text(f"⚠️ No updated data available.\n Displaying the latest available data instead:\n\n"
+                                            f"Timestamp: {timestamp}\n"
+                                            f"State of Charge: {soc}%\n"
+                                            f"Current: {current} A\n"
+                                            f"Temperature: {temperature} C°")
+        else:
+            await update.message.reply_text("No data available.")
     await show_commands(update, context)
 
 @require_authentication
