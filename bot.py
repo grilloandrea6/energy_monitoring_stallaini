@@ -7,7 +7,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Configurations
 BOT_TOKEN = "7577285779:AAGcrtYL_2YaifSPZz9d-O2vKjEY_jSGzpA"
-PASSCODE = "ciaociao"
+PASSCODE = "sunshine"
 authenticated_users = set()
 
 async def show_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -110,7 +110,7 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if data:
         timestamp, soc, current, temperature = data[-1]
         await update.message.reply_text(f"Current Status:\n"
-                                        f"Timestamp: {timestamp}\n"
+                                        f"Timestamp: {timestamp[:16]}\n"
                                         f"State of Charge: {soc}%\n"
                                         f"Current: {current} A\n"
                                         f"Temperature: {temperature} C°")
@@ -126,7 +126,7 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if last_data:
             timestamp, soc, current, temperature = last_data
             await update.message.reply_text(f"⚠️ No updated data available.\n Displaying the latest available data instead:\n\n"
-                                            f"Timestamp: {timestamp}\n"
+                                            f"Timestamp: {timestamp[:16]}\n"
                                             f"State of Charge: {soc}%\n"
                                             f"Current: {current} A\n"
                                             f"Temperature: {temperature} C°")
@@ -138,6 +138,9 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def stats_last_hour(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Generate and send stats for the last hour."""
     data = get_data(timedelta(hours=1))
+    if len(data) < 58:
+        await update.message.reply_text("⚠️ Some data is missing for the last hour, generating plot with all data I have.")
+
     filename = generate_plot(data, 'Battery Stats (Last Hour)')
     if filename:
         await update.message.reply_photo(photo=open(filename, 'rb'))    
@@ -149,6 +152,9 @@ async def stats_last_hour(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def stats_last_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Generate and send stats for the last day."""
     data = get_data(timedelta(days=1))
+    if len(data) < (60*24)-10:
+        await update.message.reply_text("⚠️ Some data is missing for the last day, generating plot with all data I have.")
+
     filename = generate_plot(data, 'Battery Stats (Last Day)')
     if filename:
         await update.message.reply_photo(photo=open(filename, 'rb'))
@@ -160,6 +166,9 @@ async def stats_last_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 async def stats_last_month(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Generate and send stats for the last month."""
     data = get_data(timedelta(days=30))
+    if len(data) < (30*60*24)-50:
+        await update.message.reply_text("⚠️ Some data is missing for the last month, generating plot with all data I have.")
+
     filename = generate_plot(data, 'Battery Stats (Last Month)')
     if filename:
         await update.message.reply_photo(photo=open(filename, 'rb'))
@@ -169,7 +178,10 @@ async def stats_last_month(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await authenticate(update, context)
-    await show_commands(update, context)
+    user_id = update.effective_user.id
+    
+    if user_id in authenticated_users:
+        await show_commands(update, context)
 
 def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
