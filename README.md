@@ -11,6 +11,7 @@ A long-term goal would be to have a system that can be generalized and used in o
   - [Table of Contents](#table-of-contents)
   - [Stallaini Energy System](#stallaini-energy-system)
     - [Main loads](#main-loads)
+  - [Features](#features)
   - [IT Architecture](#it-architecture)
   - [Configuration and Usage](#configuration-and-usage)
   - [ToDo](#todo)
@@ -28,6 +29,20 @@ The energy system in Stallaini is based on a Studer system with a Pylontech batt
  - Water heater - 1,5kW
  - Kitchen and oven - up to 2kW
  - Other appliances - secondary water pump (from the tank to the house), fridge, lights, irrigation pump, etc.
+
+## Features
+The system interacts with the user using a Telegram bot, which has the following functions:
+- Authenticate users with a password.
+- Get the current status of the battery and the energy system.
+- Get the statistics for several time spans:
+    - Last 3 hours
+    - Last 2 days
+    - Last month
+
+Example of the statistics plot for the last 2 days:
+![](images/2days_stats.jpg)
+Example of the statistics plot for the last month (whole month data still not available):
+![](images/month_stats.jpg)
 
 ## IT Architecture
 A Raspberry Pi 4 is connected to the Studer system and the battery through a CAN bus. 
@@ -49,7 +64,7 @@ The following data is sent:
  - Charge voltage - voltage at which the battery can be charged
  - Charge and discharge current limits
 
-The server stores the data in a SQLite3 database. The data is then used to provide a Telegram bot that can be used to monitor the system. The bot is protected with a password that is set in the configuration file.
+The server stores the data in a SQLite3 database. The data is then used to provide a Telegram bot that can be used to monitor the system. The bot is protected with a password that is set in the configuration file. The bot provides current status and statistics for the last 3 hours, 2 days, and month to the users. The statistics are provided in the form of plots generated using the `matplotlib` library.
 
 ## Configuration and Usage
 To use the system you need the following components:
