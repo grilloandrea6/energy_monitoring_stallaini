@@ -1,0 +1,16 @@
+[Unit]
+Description=Stallaini Monitoring Server Service
+After=network.target
+
+[Service]
+User=andrea
+WorkingDirectory=/home/andrea/stallaini_monitoring/
+ExecStart=/usr/bin/python3 /home/andrea/stallaini_monitoring/server.py
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=stallaini_bot
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,15 @@
+Description=Stallaini Monitoring Service
+After=network.target
+
+[Service]
+User=andrea
+WorkingDirectory=/home/andrea
+ExecStart=/usr/bin/python3 /home/andrea/client.py
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=stallaini_client
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
