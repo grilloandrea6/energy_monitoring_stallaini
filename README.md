@@ -17,12 +17,15 @@ A long-term goal would be to have a system that can be generalized and used in o
   - [ToDo](#todo)
 
 ## Stallaini Energy System
-The energy system in Stallaini is based on a Studer system with a Pylontech battery. It is composed of the following components:
+The energy system in Stallaini is an off-grid photovoltaic system based on a Studer system with a Pylontech battery. It is composed of the following components:
+- 9x 260 Wp solar panels
+- 2x Pylontech US5000 batteries
 - Studer XTM 4000-48 Inverter
 - Studer VarioTrack 65A MPPT
-- 2x Pylontech US5000 batteries
 - Studer RCC-02 Remote Control
 - Studer Xcom-CAN interface
+- Petrol generator (backup)
+
 
 ### Main loads
  - Main water pump - extracting water from the well. 2,2kW meaning around 50A at 48V
