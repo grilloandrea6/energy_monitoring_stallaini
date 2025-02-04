@@ -5,17 +5,21 @@ from PIL import Image
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# Configurations
-BOT_TOKEN = "7577285779:AAGcrtYL_2YaifSPZz9d-O2vKjEY_jSGzpA"
-PASSCODE = "sunshine"
+import config
+
 authenticated_users = set()
+
+def str_to_datetime(str) -> datetime:
+    return datetime.strptime(str[:19], '%Y-%m-%d %H:%M:%S')
 
 async def show_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message with reply keyboard buttons."""
+    print(authenticated_users)
+    print("user", update.effective_user)
     keyboard = [
         ["/current_status"],
-        ["/stats_last_hour", "/stats_last_day"],
-        ["/stats_last_month"]
+        ["/stats_3_hours", "/stats_2_days"],
+        ["/stats_last_month", "/uptime"]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     await update.message.reply_text("Choose a command:", reply_markup=reply_markup)
@@ -23,7 +27,7 @@ async def show_commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def authenticate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
-    if len(context.args) > 0 and context.args[0] == PASSCODE:
+    if len(context.args) > 0 and context.args[0] == config.PASSCODE:
         authenticated_users.add(user_id)
         await update.message.reply_text("Authentication successful!")
     else:
@@ -104,6 +108,28 @@ def generate_plot(data, title):
     return filename
 
 @require_authentication
+async def uptime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    timespan = timedelta(days    = 20)
+    delta    = timedelta(minutes = 2 )
+
+    data = get_data(timespan)
+
+    ret = ""
+
+    for i in range(len(data) - 1):
+        time1 = str_to_datetime(data[i][0])
+        time2 = str_to_datetime(data[i + 1][0])
+        difference = time2 - time1
+        if difference > delta:
+            ret += f"No data from {time1} to {time2} ({difference})\n"
+
+    total_time = (str_to_datetime(data[-1][0]) - str_to_datetime(data[0][0])).total_seconds() // 60
+    uptime = (len(data) - 1) / total_time
+    await update.message.reply_text(ret + f"Uptime: {uptime * 100:.2f}%")
+    await show_commands(update, context)
+
+
+@require_authentication
 async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Fetch and display the current battery status."""
     data = get_data(timedelta(minutes=1))  # Last 1 minute for the latest status
@@ -135,31 +161,32 @@ async def current_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await show_commands(update, context)
 
 @require_authentication
-async def stats_last_hour(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def stats_3_hours(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Generate and send stats for the last hour."""
-    data = get_data(timedelta(hours=1))
+    data = get_data(timedelta(hours=3))
+    print("len data",len(data))
     if len(data) < 58:
-        await update.message.reply_text("⚠️ Some data is missing for the last hour, generating plot with all data I have.")
+        await update.message.reply_text("⚠️ Some data is missing for the last 3 hours, generating plot with all data I have.")
 
-    filename = generate_plot(data, 'Battery Stats (Last Hour)')
+    filename = generate_plot(data, 'Battery Stats (Last 3 Hours)')
     if filename:
         await update.message.reply_photo(photo=open(filename, 'rb'))    
     else:
-        await update.message.reply_text("No data available for the last hour.")
+        await update.message.reply_text("No data available for the last 3 hours.")
     await show_commands(update, context)
 
 @require_authentication
-async def stats_last_day(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def stats_2_days(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Generate and send stats for the last day."""
-    data = get_data(timedelta(days=1))
+    data = get_data(timedelta(days=2))
     if len(data) < (60*24)-10:
-        await update.message.reply_text("⚠️ Some data is missing for the last day, generating plot with all data I have.")
+        await update.message.reply_text("⚠️ Some data is missing for the last 2 days, generating plot with all data I have.")
 
-    filename = generate_plot(data, 'Battery Stats (Last Day)')
+    filename = generate_plot(data, 'Battery Stats (Last 2 Days)')
     if filename:
         await update.message.reply_photo(photo=open(filename, 'rb'))
     else:
-        await update.message.reply_text("No data available for the last day.")
+        await update.message.reply_text("No data available for the last 2 days.")
     await show_commands(update, context)
 
 @require_authentication
@@ -184,14 +211,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await show_commands(update, context)
 
 def main() -> None:
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(config.BOT_TOKEN).build()
 
     # Command Handlers
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('current_status', current_status))
-    application.add_handler(CommandHandler('stats_last_hour', stats_last_hour))
-    application.add_handler(CommandHandler('stats_last_day', stats_last_day))
+    application.add_handler(CommandHandler('stats_3_hours', stats_3_hours))
+    application.add_handler(CommandHandler('stats_2_days', stats_2_days))
     application.add_handler(CommandHandler('stats_last_month', stats_last_month))
+    application.add_handler(CommandHandler('uptime', uptime))
     application.add_handler(CommandHandler('commands', show_commands))
 
     # Start the bot
