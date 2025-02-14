@@ -48,7 +48,7 @@ def save_data(data, sent=False):
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
         """, (
-            datetime.fromtimestamp(data['ts']),
+            data['ts'],
             data.get('cv'),
             data.get('ccl'),
             data.get('dcl'),
@@ -101,7 +101,7 @@ def send_data(data=data, server_ip=server_ip, server_port=server_port):
     for row in unsent_data:
         row_id = row[0]  # Extract the row ID
         data_to_send = {
-            'ts': datetime.fromisoformat(row[1]).timestamp(),
+            'ts': row[1],
             'cv': row[2],
             'ccl': row[3],
             'dcl': row[4],
@@ -124,9 +124,9 @@ def send_data(data=data, server_ip=server_ip, server_port=server_port):
             **data  # Merge current data into the packet
         }
         if server_active and send_to_server(current_data, server_ip, server_port):
-            save_data(data, sent=True)
+            save_data(current_data, sent=True)
         else:
-            save_data(data, sent=False)
+            save_data(current_data, sent=False)
 
 # Attempt to send a single data packet to the server
 def send_to_server(data, server_ip, server_port):
