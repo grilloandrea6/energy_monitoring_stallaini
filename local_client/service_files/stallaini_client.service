@@ -1,10 +1,11 @@
+[Unit]
 Description=Stallaini Monitoring Service
 After=network.target
 
 [Service]
 User=andrea
-WorkingDirectory=/home/andrea
-ExecStart=/usr/bin/python3 /home/andrea/client.py
+WorkingDirectory=PWD/local_client
+ExecStart=/usr/bin/python3 PWD/local_client/client.py
 Restart=always
 StandardOutput=syslog
 StandardError=syslog

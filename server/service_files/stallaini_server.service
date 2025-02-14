@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=andrea
-WorkingDirectory=/home/andrea/stallaini_monitoring/
-ExecStart=/usr/bin/python3 /home/andrea/stallaini_monitoring/server.py
+WorkingDirectory=PWD/server
+ExecStart=/usr/bin/python3 PWD/server/server.py
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
