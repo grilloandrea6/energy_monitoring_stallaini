@@ -82,14 +82,14 @@ The steps to configure the system are the following:
     - `local-client/service_files/stallaini_client.service` - systemd service to run the Python client.
 
 ## ToDo
-- [ ] Remove hardcoded data in the repo and create an installation script (move service files to the right place and enable them).
-- [ ] Save data locally when connection is not available.
-- [ ] Migrate the server to a cloud service.
-- [ ] Save authenticated users in the database.
+- [ ] Get data from the Studer system (data about inverter status, MPPT status, etc.).
 - [ ] Send notifications for logged users for events (battery alarm, battery low, heavy load on for too much time, etc.).
+- [ ] Improve granularity of consumption management (add power meters for main loads).
+- [ ] Add weather data to the system (e.g. solar irradiation).
 - [ ] Add a clearer schema to the docs, section Stallaini Energy System.
 - [ ] Start working on automation features (automatic management of well pump and water heater).
-- [ ] Improve granularity of consumption management (add measurements for main loads).
-- [ ] Get data from the Studer system (data about inverter status, MPPT status, etc.).
-- [ ] Add weather data to the system (e.g. solar irradiation).
+- [ ] Migrate the server to a cloud service.
+- [ ] Save authenticated users in the database.
+- [x] Remove hardcoded data in the repo and create an installation script (move service files to the right place and enable them).
+- [x] Save data locally when connection is not available.
 
